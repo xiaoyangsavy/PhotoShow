@@ -13,12 +13,16 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.widget.ImageView;
 
+import com.savy.imageshow.model.FileInfo;
 import com.savy.imageshow.util.StaticProperty;
 
+import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
 
 import jcifs.UniAddress;
 import jcifs.smb.NtlmPasswordAuthentication;
@@ -92,7 +96,8 @@ public class MainActivity extends Activity {
                     //登录授权结束
                     String rootPath = "smb://" + myIp + "/";//文件夹根目录
                     SmbFile[] files = MainActivity.this.getFileList(rootPath, mAuthentication);
-
+                    List<FileInfo> fileList = MainActivity.this.toFileList(files);
+                    
                 } catch (UnknownHostException e) {
                     e.printStackTrace();
                 } catch (SmbException e) {
@@ -189,6 +194,46 @@ public class MainActivity extends Activity {
         return files;
     }
 
+
+    //文件的原始接口数据转换为列表数据
+    public List<FileInfo> toFileList(SmbFile[] myFiles){
+        List<FileInfo> myList = new ArrayList<FileInfo>();
+        for (SmbFile smbfile : myFiles) {//遍历文件列表内容
+            try {
+            FileInfo fileInfo = new FileInfo();
+
+            String fileUrl = smbfile.getCanonicalPath();
+            String fileName = smbfile.getName();
+
+            fileInfo.setFileUrl(fileUrl);//文件访问地址
+
+            //识别文件类型
+                if(smbfile.isDirectory()){//文件类型为文件夹
+                    fileInfo.setName(fileName.substring(0,fileName.length()-1));//去除最后的/
+                    fileInfo.setType(FileInfo.DIRECTORY);
+                }else{//文件类型为文件
+                   String[] fileNames =  fileName.split(".");
+                    if(fileNames.length>1){//文件名包含类型
+                        fileInfo.setName(fileNames[0]);
+                       String suffix =  fileNames[fileNames.length-1];
+                       if("jpg".equals(suffix)){
+                           fileInfo.setType(FileInfo.PHOTO);
+                       }
+                    }else{//文件名不包含类型
+                        fileInfo.setName(fileName);
+                        fileInfo.setType(FileInfo.UNKNOWN);
+                    }
+                }
+                if(fileInfo.getType()==null||fileInfo.getType()==0){//都不符合，则为未知类型的文件
+                    fileInfo.setType(FileInfo.UNKNOWN);
+                }
+            } catch (SmbException e) {
+                e.printStackTrace();
+            }
+
+        }
+        return myList;
+    }
 
 
     //decodes image and scales it to reduce memory consumption
