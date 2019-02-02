@@ -1,10 +1,14 @@
 package com.savy.imageshow;
 
 import android.app.Activity;
+import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.widget.ImageView;
@@ -29,6 +33,8 @@ public class MainActivity extends Activity {
     SharedPreferences share = null;
     SharedPreferences.Editor sedit = null;
     private ImageView myImageView;
+    private ProgressDialog progressDialog;
+    private Handler myHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,9 +56,9 @@ public class MainActivity extends Activity {
         String ip = "192.168.3.34";//pc地址
         String username = "user";//账户密码
         String password = "546213";
-        sedit.putString(StaticProperty.IP,ip);//访问地址
-        sedit.putString(StaticProperty.USERNAME,username);//用户名
-        sedit.putString(StaticProperty.PASSWORD,password);//密码
+        sedit.putString(StaticProperty.IP, ip);//访问地址
+        sedit.putString(StaticProperty.USERNAME, username);//用户名
+        sedit.putString(StaticProperty.PASSWORD, password);//密码
         sedit.commit();
         //访问连接配置
         System.setProperty("jcifs.smb.client.dfs.disabled", "true");//默认false
@@ -62,6 +68,14 @@ public class MainActivity extends Activity {
         this.myImageView = (ImageView) this
                 .findViewById(R.id.myImageView); // 取得弹出界面中的组件
 
+        progressDialog = new ProgressDialog(MainActivity.this);
+        // 设置进度条风格，风格为圆形，旋转的
+        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        // 设置ProgressDialog 提示信息
+        progressDialog.setMessage("请稍候......");
+        // 设置ProgressDialog 是否可以按退回按键取消
+        progressDialog.setCancelable(false);
+        MainActivity.this.progressDialog.show();
 
         new Thread(new Runnable() {
             @Override
@@ -69,27 +83,39 @@ public class MainActivity extends Activity {
                 UniAddress mDomain = null;
                 try {
                     //登录授权
-                    String ip = share.getString(StaticProperty.IP,null);
-                    String username = share.getString(StaticProperty.USERNAME,null);
-                    String password = share.getString(StaticProperty.PASSWORD,null);
-                    mDomain = UniAddress.getByName(ip);
-                    NtlmPasswordAuthentication mAuthentication = new NtlmPasswordAuthentication(ip, username, password);
+                    String myIp = share.getString(StaticProperty.IP, null);
+                    String myUsername = share.getString(StaticProperty.USERNAME, null);
+                    String myPassword = share.getString(StaticProperty.PASSWORD, null);
+                    mDomain = UniAddress.getByName(myIp);
+                    NtlmPasswordAuthentication mAuthentication = new NtlmPasswordAuthentication(myIp, myUsername, myPassword);
                     SmbSession.logon(mDomain, mAuthentication);//访问共享服务器
                     //登录授权结束
-                    String rootPath = "smb://" + ip + "/";//文件夹根目录
-                    SmbFile[] files =  MainActivity.this.getFileList(rootPath,mAuthentication);
+                    String rootPath = "smb://" + myIp + "/";//文件夹根目录
+                    SmbFile[] files = MainActivity.this.getFileList(rootPath, mAuthentication);
 
                 } catch (UnknownHostException e) {
                     e.printStackTrace();
                 } catch (SmbException e) {
                     e.printStackTrace();
                 }
+                MainActivity.this.progressDialog.dismiss();
+            }
+        }).start();
 
+
+        // 将跳转之后的页面需要显示的信息传入
+        this.myHandler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                switch (msg.what) {
+                    case -99:
+                       Bitmap bitmap = (Bitmap) msg.obj;
+                        MainActivity.this.myImageView.setImageBitmap(bitmap);
+                        break;
+                }
+            }
+        };
     }
-}).start();
-
-    }
-
 
     //获取文件目录
     public final SmbFile[] getFileList(String myFileUrl,NtlmPasswordAuthentication myAuthentication){
@@ -140,8 +166,14 @@ public class MainActivity extends Activity {
                                     Log.e("文件----","item2内容类型:"+itemcontentType2);
                                 }
                             }else{
-                               Bitmap imageBitmap = MainActivity.this.smbFileToBitmap(itemSmbfile2);
-                                MainActivity.this.myImageView.setImageBitmap(imageBitmap);
+                                Bitmap imageBitmap = MainActivity.this.smbFileToBitmap(itemSmbfile2);
+
+                                Message locationMsg = MainActivity.this.myHandler
+                                        .obtainMessage(); // 创建消息
+                                locationMsg.what = -99;
+                                locationMsg.obj = imageBitmap;
+                                // System.out.println(bannerList.size()+"bannerList**********");
+                                MainActivity.this.myHandler.sendMessage(locationMsg);
                             }
 
 
