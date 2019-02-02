@@ -12,6 +12,7 @@ import android.os.Message;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.widget.ImageView;
+import android.widget.ListView;
 
 import com.savy.imageshow.model.FileInfo;
 import com.savy.imageshow.util.StaticProperty;
@@ -39,6 +40,7 @@ public class MainActivity extends Activity {
     private ImageView myImageView;
     private ProgressDialog progressDialog;
     private Handler myHandler;
+    private ListView listView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +73,7 @@ public class MainActivity extends Activity {
 
         this.myImageView = (ImageView) this
                 .findViewById(R.id.myImageView); // 取得弹出界面中的组件
+            this.listView = (ListView) this.findViewById(R.id.list_view);
 
         progressDialog = new ProgressDialog(MainActivity.this);
         // 设置进度条风格，风格为圆形，旋转的
@@ -97,7 +100,7 @@ public class MainActivity extends Activity {
                     String rootPath = "smb://" + myIp + "/";//文件夹根目录
                     SmbFile[] files = MainActivity.this.getFileList(rootPath, mAuthentication);
                     List<FileInfo> fileList = MainActivity.this.toFileList(files);
-                    
+
                 } catch (UnknownHostException e) {
                     e.printStackTrace();
                 } catch (SmbException e) {
