@@ -14,6 +14,7 @@ import android.util.Log;
 import android.widget.ImageView;
 import android.widget.ListView;
 
+import com.savy.imageshow.adapter.FileListViewAdapter;
 import com.savy.imageshow.model.FileInfo;
 import com.savy.imageshow.util.StaticProperty;
 
@@ -37,10 +38,11 @@ public class MainActivity extends Activity {
 
     SharedPreferences share = null;
     SharedPreferences.Editor sedit = null;
-    private ImageView myImageView;
+//    private ImageView myImageView;
     private ProgressDialog progressDialog;
     private Handler myHandler;
     private ListView listView;
+    private FileListViewAdapter fileListViewAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,8 +73,8 @@ public class MainActivity extends Activity {
         System.setProperty("jcifs.smb.client.soTimeout", "1000000");//超时
         System.setProperty("jcifs.smb.client.responseTimeout", "30000");//超时
 
-        this.myImageView = (ImageView) this
-                .findViewById(R.id.myImageView); // 取得弹出界面中的组件
+//        this.myImageView = (ImageView) this
+//                .findViewById(R.id.myImageView); // 取得弹出界面中的组件
             this.listView = (ListView) this.findViewById(R.id.list_view);
 
         progressDialog = new ProgressDialog(MainActivity.this);
@@ -100,7 +102,11 @@ public class MainActivity extends Activity {
                     String rootPath = "smb://" + myIp + "/";//文件夹根目录
                     SmbFile[] files = MainActivity.this.getFileList(rootPath, mAuthentication);
                     List<FileInfo> fileList = MainActivity.this.toFileList(files);
-
+                    Message locationMsg = MainActivity.this.myHandler
+                            .obtainMessage(); // 创建消息
+                    locationMsg.what = 1;
+                    locationMsg.obj = fileList;
+                    MainActivity.this.myHandler.sendMessage(locationMsg);
                 } catch (UnknownHostException e) {
                     e.printStackTrace();
                 } catch (SmbException e) {
@@ -116,9 +122,14 @@ public class MainActivity extends Activity {
             @Override
             public void handleMessage(Message msg) {
                 switch (msg.what) {
+                    case 1:
+                        List<FileInfo> myList = (List<FileInfo>) msg.obj;
+                        fileListViewAdapter = new FileListViewAdapter(MainActivity.this, myList);
+                        MainActivity.this.listView.setAdapter(fileListViewAdapter);
+                        break;
                     case -99:
-                       Bitmap bitmap = (Bitmap) msg.obj;
-                        MainActivity.this.myImageView.setImageBitmap(bitmap);
+//                        Bitmap bitmap = (Bitmap) msg.obj;
+//                        MainActivity.this.myImageView.setImageBitmap(bitmap);
                         break;
                 }
             }
@@ -176,12 +187,12 @@ public class MainActivity extends Activity {
                             }else{
                                 Bitmap imageBitmap = MainActivity.this.smbFileToBitmap(itemSmbfile2);
 
-                                Message locationMsg = MainActivity.this.myHandler
-                                        .obtainMessage(); // 创建消息
-                                locationMsg.what = -99;
-                                locationMsg.obj = imageBitmap;
-                                // System.out.println(bannerList.size()+"bannerList**********");
-                                MainActivity.this.myHandler.sendMessage(locationMsg);
+//                                Message locationMsg = MainActivity.this.myHandler
+//                                        .obtainMessage(); // 创建消息
+//                                locationMsg.what = -99;
+//                                locationMsg.obj = imageBitmap;
+//                                // System.out.println(bannerList.size()+"bannerList**********");
+//                                MainActivity.this.myHandler.sendMessage(locationMsg);
                             }
 
 
@@ -230,6 +241,7 @@ public class MainActivity extends Activity {
                 if(fileInfo.getType()==null||fileInfo.getType()==0){//都不符合，则为未知类型的文件
                     fileInfo.setType(FileInfo.UNKNOWN);
                 }
+                myList.add(fileInfo);
             } catch (SmbException e) {
                 e.printStackTrace();
             }
