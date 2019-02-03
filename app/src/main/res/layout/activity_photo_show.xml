@@ -4,21 +4,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    tools:context=".PhotoShowActivity"
+    android:background="@color/colorPrimaryDark">
 
-    <ListView
-        android:id="@+id/list_view"
+    <ImageView
+        android:id="@+id/photo_show_image_view"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:cacheColorHint="#00000000"
-        android:divider="@null"
-        android:dividerHeight="0dip"
-        android:drawSelectorOnTop="false"
-        android:fadingEdgeLength="0dip"
-        android:footerDividersEnabled="false"
-        android:headerDividersEnabled="false"
-        android:listSelector="@drawable/list_selector"
-          >
-    </ListView>
+        android:src="@drawable/photo_default" >
+    </ImageView>
 
 </android.support.constraint.ConstraintLayout>

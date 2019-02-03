@@ -1,8 +1,8 @@
 package com.savy.imageshow;
 
 import android.app.Activity;
-import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -11,17 +11,14 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.widget.ImageView;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.savy.imageshow.adapter.FileListViewAdapter;
 import com.savy.imageshow.model.FileInfo;
 import com.savy.imageshow.util.StaticProperty;
 
-import java.io.File;
-import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,19 +33,26 @@ import jcifs.smb.SmbSession;
 
 public class MainActivity extends Activity {
 
-    SharedPreferences share = null;
+    SharedPreferences share = null;     //本地缓存
     SharedPreferences.Editor sedit = null;
 //    private ImageView myImageView;
-    private ProgressDialog progressDialog;
+    private ProgressDialog progressDialog;  //等待视图
     private Handler myHandler;
-    private ListView listView;
+    private ListView listView;  //文件浏览列表
     private FileListViewAdapter fileListViewAdapter;
+    private  String fileUrl=null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        Intent intent=getIntent();
+        if(intent!=null)
+        {
+            this.fileUrl=intent.getStringExtra("fileUrl");
+            Log.e("savy","新页面接收到数据："+ this.fileUrl);
+        }
         // 保存本地信息
         share = MainActivity.this.getSharedPreferences(
                 StaticProperty.SAVE_INFO, Activity.MODE_PRIVATE);
@@ -99,8 +103,12 @@ public class MainActivity extends Activity {
                     NtlmPasswordAuthentication mAuthentication = new NtlmPasswordAuthentication(myIp, myUsername, myPassword);
                     SmbSession.logon(mDomain, mAuthentication);//访问共享服务器
                     //登录授权结束
-                    String rootPath = "smb://" + myIp + "/";//文件夹根目录
-                    SmbFile[] files = MainActivity.this.getFileList(rootPath, mAuthentication);
+                    if(MainActivity.this.fileUrl==null||"".equals(MainActivity.this.fileUrl)){
+                        MainActivity.this.fileUrl = "smb://" + myIp + "/";//文件夹根目录
+                    }
+                    Log.e("savy","获取共享文件目录："+ MainActivity.this.fileUrl);
+//                    String rootPath = "smb://" + myIp + "/";//文件夹根目录
+                    SmbFile[] files = MainActivity.this.getFileList(MainActivity.this.fileUrl, mAuthentication);
                     List<FileInfo> fileList = MainActivity.this.toFileList(files);
                     Message locationMsg = MainActivity.this.myHandler
                             .obtainMessage(); // 创建消息
@@ -127,6 +135,20 @@ public class MainActivity extends Activity {
                         fileListViewAdapter = new FileListViewAdapter(MainActivity.this, myList);
                         MainActivity.this.listView.setAdapter(fileListViewAdapter);
                         break;
+                    case 2:
+                        Bitmap imageBitmap = (Bitmap) msg.obj;
+                        Intent intent = new Intent();
+                        intent.setClass(MainActivity.this,
+                                PhotoShowActivity.class);
+                        intent.putExtra("bitmap",
+                                imageBitmap);
+//                                                intent.putExtra("AttitudeDesign",
+//                                                        (Serializable) attitudeDesign4);
+                        Log.e("savvy","即将跳转页面PhotoShowActivity");
+                        startActivityForResult(intent, 1);
+                        break;
+
+
                     case -99:
 //                        Bitmap bitmap = (Bitmap) msg.obj;
 //                        MainActivity.this.myImageView.setImageBitmap(bitmap);
@@ -134,6 +156,43 @@ public class MainActivity extends Activity {
                 }
             }
         };
+
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                                            public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
+                                                                    long arg3) {
+                                            Log.e("savvy","点击列表，即将 跳转页面："+arg2);
+                                                View view = arg1;
+                                                int positon = arg2;
+                                                FileInfo fileInfo = (FileInfo) arg0.getAdapter().getItem(positon);
+                                                Integer type = fileInfo.getType();
+                                                Log.e("savvy","文件类型为："+type);
+                                               if(type==FileInfo.DIRECTORY){
+                                                   Intent intent = new Intent();
+                                                   intent.setClass(MainActivity.this,
+                                                           MainActivity.class);
+                                                   intent.putExtra("fileUrl",
+                                                           fileInfo.getFileUrl());
+                                                   Log.e("savvy","跳转页面："+fileInfo.getFileUrl());
+                                                   startActivityForResult(intent, 1);
+                                               }else if (type==FileInfo.PHOTO){
+                                                  final  SmbFile file = fileInfo.getFile();
+                                                   new Thread(new Runnable() {
+                                                       @Override
+                                                       public void run() {
+                                                           Bitmap imageBitmap = MainActivity.this.smbFileToBitmap(file);
+                                                           Message locationMsg = MainActivity.this.myHandler
+                                                                   .obtainMessage(); // 创建消息
+                                                           locationMsg.what = 2;
+                                                           locationMsg.obj = imageBitmap;
+                                                           MainActivity.this.myHandler.sendMessage(locationMsg);
+                                                       }
+                                                   }).start();
+
+                                               }
+
+
+                                            }
+                                        });
     }
 
     //获取文件目录
@@ -185,7 +244,7 @@ public class MainActivity extends Activity {
                                     Log.e("文件----","item2内容类型:"+itemcontentType2);
                                 }
                             }else{
-                                Bitmap imageBitmap = MainActivity.this.smbFileToBitmap(itemSmbfile2);
+//                                Bitmap imageBitmap = MainActivity.this.smbFileToBitmap(itemSmbfile2);
 
 //                                Message locationMsg = MainActivity.this.myHandler
 //                                        .obtainMessage(); // 创建消息
@@ -218,18 +277,21 @@ public class MainActivity extends Activity {
 
             String fileUrl = smbfile.getCanonicalPath();
             String fileName = smbfile.getName();
-
+            fileInfo.setFile(smbfile);
             fileInfo.setFileUrl(fileUrl);//文件访问地址
 
             //识别文件类型
                 if(smbfile.isDirectory()){//文件类型为文件夹
+                    Log.e("savvy","为文件夹类型");
                     fileInfo.setName(fileName.substring(0,fileName.length()-1));//去除最后的/
                     fileInfo.setType(FileInfo.DIRECTORY);
                 }else{//文件类型为文件
-                   String[] fileNames =  fileName.split(".");
+                    Log.e("savvy","为文件类型");
+                   String[] fileNames =  fileName.split("\\.");
                     if(fileNames.length>1){//文件名包含类型
                         fileInfo.setName(fileNames[0]);
                        String suffix =  fileNames[fileNames.length-1];
+                       Log.e("savvy","type:"+suffix);
                        if("jpg".equals(suffix)){
                            fileInfo.setType(FileInfo.PHOTO);
                        }
