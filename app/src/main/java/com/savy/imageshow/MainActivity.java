@@ -17,8 +17,10 @@ import android.widget.ListView;
 
 import com.savy.imageshow.adapter.FileListViewAdapter;
 import com.savy.imageshow.model.FileInfo;
+import com.savy.imageshow.util.FileUtil;
 import com.savy.imageshow.util.StaticProperty;
 
+import java.io.Serializable;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +43,8 @@ public class MainActivity extends Activity {
     private ListView listView;  //文件浏览列表
     private FileListViewAdapter fileListViewAdapter;
     private  String fileUrl=null;
+    private List<FileInfo> fileList = new ArrayList<FileInfo>();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,7 +57,7 @@ public class MainActivity extends Activity {
             this.fileUrl=intent.getStringExtra("fileUrl");
             Log.e("savy","新页面接收到数据："+ this.fileUrl);
         }
-        // 保存本地信息
+        // 本地缓存信息
         share = MainActivity.this.getSharedPreferences(
                 StaticProperty.SAVE_INFO, Activity.MODE_PRIVATE);
         sedit = share.edit();
@@ -81,14 +85,14 @@ public class MainActivity extends Activity {
 //                .findViewById(R.id.myImageView); // 取得弹出界面中的组件
             this.listView = (ListView) this.findViewById(R.id.list_view);
 
-        progressDialog = new ProgressDialog(MainActivity.this);
+        this.progressDialog = new ProgressDialog(this);
         // 设置进度条风格，风格为圆形，旋转的
-        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        this.progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         // 设置ProgressDialog 提示信息
-        progressDialog.setMessage("请稍候......");
+        this.progressDialog.setMessage("请稍候......");
         // 设置ProgressDialog 是否可以按退回按键取消
-        progressDialog.setCancelable(false);
-        MainActivity.this.progressDialog.show();
+        this.progressDialog.setCancelable(false);
+        this.progressDialog.show();
 
         new Thread(new Runnable() {
             @Override
@@ -108,12 +112,12 @@ public class MainActivity extends Activity {
                     }
                     Log.e("savy","获取共享文件目录："+ MainActivity.this.fileUrl);
 //                    String rootPath = "smb://" + myIp + "/";//文件夹根目录
-                    SmbFile[] files = MainActivity.this.getFileList(MainActivity.this.fileUrl, mAuthentication);
-                    List<FileInfo> fileList = MainActivity.this.toFileList(files);
+                    SmbFile[] files = FileUtil.getFileList(MainActivity.this.fileUrl, mAuthentication);
+                    MainActivity.this.fileList = FileUtil.toFileList(files);
                     Message locationMsg = MainActivity.this.myHandler
                             .obtainMessage(); // 创建消息
                     locationMsg.what = 1;
-                    locationMsg.obj = fileList;
+                    locationMsg.obj =  MainActivity.this.fileList;
                     MainActivity.this.myHandler.sendMessage(locationMsg);
                 } catch (UnknownHostException e) {
                     e.printStackTrace();
@@ -175,19 +179,27 @@ public class MainActivity extends Activity {
                                                    Log.e("savvy","跳转页面："+fileInfo.getFileUrl());
                                                    startActivityForResult(intent, 1);
                                                }else if (type==FileInfo.PHOTO){
-                                                  final  SmbFile file = fileInfo.getFile();
-                                                   new Thread(new Runnable() {
-                                                       @Override
-                                                       public void run() {
-                                                           Bitmap imageBitmap = MainActivity.this.smbFileToBitmap(file);
-                                                           Message locationMsg = MainActivity.this.myHandler
-                                                                   .obtainMessage(); // 创建消息
-                                                           locationMsg.what = 2;
-                                                           locationMsg.obj = imageBitmap;
-                                                           MainActivity.this.myHandler.sendMessage(locationMsg);
-                                                       }
-                                                   }).start();
-
+//                                                  final  SmbFile file = fileInfo.getFile();
+//                                                   new Thread(new Runnable() {
+//                                                       @Override
+//                                                       public void run() {
+//                                                           Bitmap imageBitmap = FileUtil.smbFileToBitmap(file);
+//                                                           Message locationMsg = MainActivity.this.myHandler
+//                                                                   .obtainMessage(); // 创建消息
+//                                                           locationMsg.what = 2;
+//                                                           locationMsg.obj = imageBitmap;
+//                                                           MainActivity.this.myHandler.sendMessage(locationMsg);
+//                                                       }
+//                                                   }).start();
+                                                   Intent intent = new Intent();
+                                                   intent.setClass(MainActivity.this,
+                                                           PhotoShowActivity.class);
+//                                                   intent.putExtra("bitmap",
+//                                                           imageBitmap);
+                                                intent.putExtra("fileUrl",
+                                                        fileUrl);
+                                                   Log.e("savvy","即将跳转页面PhotoShowActivity");
+                                                   startActivityForResult(intent, 1);
                                                }
 
 
@@ -195,148 +207,8 @@ public class MainActivity extends Activity {
                                         });
     }
 
-    //获取文件目录
-    public final SmbFile[] getFileList(String myFileUrl,NtlmPasswordAuthentication myAuthentication){
-        SmbFile[] files = null;
-        SmbFile mRootFolder;
-        try {
-            mRootFolder = new SmbFile(myFileUrl, myAuthentication);//共享文件列表
-            files = mRootFolder.listFiles();
-
-            //DEBUG
-            for (SmbFile smbfile : files) {//遍历文件列表内容
-                String fileUrl = smbfile.getCanonicalPath();
-                String contentType = smbfile.getContentType();
-                int type = smbfile.getType();
-                String fileName = smbfile.getName();
-                Log.e("文件----", "文件地址:" + fileUrl);
-                Log.e("文件----", "文件名称:" + fileName);
-                Log.e("文件----", "文件类型:" + type);
-                Log.e("文件----", "内容类型:" + contentType);
-                if("GoogleCloudDisk/".equals(fileName)){
-                    Log.e("文件----","发现文件！");
-                    SmbFile itemSmbfile=new SmbFile(fileUrl, myAuthentication);
-                    SmbFile[] itemFiles = itemSmbfile.listFiles();
-                    for (SmbFile itemFile : itemFiles) {
-                        String itemfileUrl = itemFile.getCanonicalPath();
-                        String itemcontentType =  itemFile.getContentType();
-                        int itemtype = itemFile.getType();
-                        String itemfileName =  itemFile.getName();
-                        Log.e("文件----","item文件地址:"+itemfileUrl);
-                        Log.e("文件----","item文件名称:"+itemfileName);
-                        Log.e("文件----","item文件类型:"+itemtype);
-                        Log.e("文件----","item内容类型:"+itemcontentType);
 
 
-                        if("3.jpg".equals(itemfileName)){
-                            Log.e("文件----","发现文件！");
-                            SmbFile itemSmbfile2=new SmbFile(itemfileUrl, myAuthentication);
-                            if(itemSmbfile2.isDirectory()){
-                                SmbFile[] itemFiles2 = itemSmbfile2.listFiles();
-                                for (SmbFile itemFile2 : itemFiles2) {
-                                    String itemfileUrl2 = itemFile2.getCanonicalPath();
-                                    String itemcontentType2 =  itemFile2.getContentType();
-                                    int itemtype2 = itemFile2.getType();
-                                    String itemfileName2 =  itemFile2.getName();
-                                    Log.e("文件----","item2文件地址:"+itemfileUrl2);
-                                    Log.e("文件----","item2文件名称:"+itemfileName2);
-                                    Log.e("文件----","item2文件类型:"+itemtype2);
-                                    Log.e("文件----","item2内容类型:"+itemcontentType2);
-                                }
-                            }else{
-//                                Bitmap imageBitmap = MainActivity.this.smbFileToBitmap(itemSmbfile2);
-
-//                                Message locationMsg = MainActivity.this.myHandler
-//                                        .obtainMessage(); // 创建消息
-//                                locationMsg.what = -99;
-//                                locationMsg.obj = imageBitmap;
-//                                // System.out.println(bannerList.size()+"bannerList**********");
-//                                MainActivity.this.myHandler.sendMessage(locationMsg);
-                            }
 
 
-                        }
-                    }
-                }
-            }
-
-
-            }catch (Exception e){
-            e.printStackTrace();
-            }
-        return files;
-    }
-
-
-    //文件的原始接口数据转换为列表数据
-    public List<FileInfo> toFileList(SmbFile[] myFiles){
-        List<FileInfo> myList = new ArrayList<FileInfo>();
-        for (SmbFile smbfile : myFiles) {//遍历文件列表内容
-            try {
-            FileInfo fileInfo = new FileInfo();
-
-            String fileUrl = smbfile.getCanonicalPath();
-            String fileName = smbfile.getName();
-            fileInfo.setFile(smbfile);
-            fileInfo.setFileUrl(fileUrl);//文件访问地址
-
-            //识别文件类型
-                if(smbfile.isDirectory()){//文件类型为文件夹
-                    Log.e("savvy","为文件夹类型");
-                    fileInfo.setName(fileName.substring(0,fileName.length()-1));//去除最后的/
-                    fileInfo.setType(FileInfo.DIRECTORY);
-                }else{//文件类型为文件
-                    Log.e("savvy","为文件类型");
-                   String[] fileNames =  fileName.split("\\.");
-                    if(fileNames.length>1){//文件名包含类型
-                        fileInfo.setName(fileNames[0]);
-                       String suffix =  fileNames[fileNames.length-1];
-                       Log.e("savvy","type:"+suffix);
-                       if("jpg".equals(suffix)){
-                           fileInfo.setType(FileInfo.PHOTO);
-                       }
-                    }else{//文件名不包含类型
-                        fileInfo.setName(fileName);
-                        fileInfo.setType(FileInfo.UNKNOWN);
-                    }
-                }
-                if(fileInfo.getType()==null||fileInfo.getType()==0){//都不符合，则为未知类型的文件
-                    fileInfo.setType(FileInfo.UNKNOWN);
-                }
-                myList.add(fileInfo);
-            } catch (SmbException e) {
-                e.printStackTrace();
-            }
-
-        }
-        return myList;
-    }
-
-
-    //decodes image and scales it to reduce memory consumption
-    private Bitmap smbFileToBitmap(SmbFile file){
-        try {
-            //Decode image size
-            BitmapFactory.Options o = new BitmapFactory.Options();
-            o.inJustDecodeBounds = true;
-            BitmapFactory.decodeStream(new SmbFileInputStream(file),null,o);
-
-            //The new size we want to scale to
-            final int REQUIRED_SIZE=70;
-
-            //Find the correct scale value. It should be the power of 2.
-            int scale=1;
-            while(o.outWidth/scale/2>=REQUIRED_SIZE && o.outHeight/scale/2>=REQUIRED_SIZE)
-                scale*=2;
-
-            //Decode with inSampleSize
-            BitmapFactory.Options o2 = new BitmapFactory.Options();
-            o2.inSampleSize=scale;
-
-            System.gc();
-
-            return BitmapFactory.decodeStream(new SmbFileInputStream(file), null, o2);
-        } catch (Exception e) {}
-        return null;
-    }
 }

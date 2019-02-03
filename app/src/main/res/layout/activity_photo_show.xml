@@ -5,13 +5,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".PhotoShowActivity"
-    android:background="@color/colorPrimaryDark">
+     >
 
-    <ImageView
-        android:id="@+id/photo_show_image_view"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:src="@drawable/photo_default" >
-    </ImageView>
+    <com.savy.imageshow.custom.photoview.HackyViewPager
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/view_pager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
 </android.support.constraint.ConstraintLayout>

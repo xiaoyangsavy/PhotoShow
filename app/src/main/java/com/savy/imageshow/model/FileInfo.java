@@ -1,9 +1,11 @@
 package com.savy.imageshow.model;
 
+import java.io.Serializable;
+
 import jcifs.smb.SmbFile;
 
 //文件展示信息
-public class FileInfo {
+public class FileInfo implements Serializable {
     private String name;        //文件名称
     private Integer type;           //文件类型
     private String fileUrl;     //文件地址
