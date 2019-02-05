@@ -16,6 +16,7 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.savy.imageshow.adapter.FileListViewAdapter;
+import com.savy.imageshow.custom.ActivityLocal;
 import com.savy.imageshow.model.FileInfo;
 import com.savy.imageshow.util.FileUtil;
 import com.savy.imageshow.util.StaticProperty;
@@ -140,16 +141,19 @@ public class MainActivity extends Activity {
                         MainActivity.this.listView.setAdapter(fileListViewAdapter);
                         break;
                     case 2:
-                        Bitmap imageBitmap = (Bitmap) msg.obj;
+                        List<FileInfo> allValues = (List<FileInfo>) msg.obj;
                         Intent intent = new Intent();
                         intent.setClass(MainActivity.this,
                                 PhotoShowActivity.class);
-                        intent.putExtra("bitmap",
-                                imageBitmap);
+                        ActivityLocal al = new ActivityLocal(MainActivity.this);
+                        al.set(allValues );
+                        Bundle bundle = new Bundle();
+                        bundle.putString("activitylocal",String.valueOf(al.hashCode()));
+                        intent.putExtras(bundle);
 //                                                intent.putExtra("AttitudeDesign",
 //                                                        (Serializable) attitudeDesign4);
                         Log.e("savvy","即将跳转页面PhotoShowActivity");
-                        startActivityForResult(intent, 1);
+                        startActivity(intent);
                         break;
 
 
@@ -179,27 +183,25 @@ public class MainActivity extends Activity {
                                                    Log.e("savvy","跳转页面："+fileInfo.getFileUrl());
                                                    startActivityForResult(intent, 1);
                                                }else if (type==FileInfo.PHOTO){
-//                                                  final  SmbFile file = fileInfo.getFile();
-//                                                   new Thread(new Runnable() {
-//                                                       @Override
-//                                                       public void run() {
+                                                  final  SmbFile file = fileInfo.getFile();
+                                                   new Thread(new Runnable() {
+                                                       @Override
+                                                       public void run() {
 //                                                           Bitmap imageBitmap = FileUtil.smbFileToBitmap(file);
-//                                                           Message locationMsg = MainActivity.this.myHandler
-//                                                                   .obtainMessage(); // 创建消息
-//                                                           locationMsg.what = 2;
-//                                                           locationMsg.obj = imageBitmap;
-//                                                           MainActivity.this.myHandler.sendMessage(locationMsg);
-//                                                       }
-//                                                   }).start();
-                                                   Intent intent = new Intent();
-                                                   intent.setClass(MainActivity.this,
-                                                           PhotoShowActivity.class);
-//                                                   intent.putExtra("bitmap",
-//                                                           imageBitmap);
-                                                intent.putExtra("fileUrl",
-                                                        fileUrl);
-                                                   Log.e("savvy","即将跳转页面PhotoShowActivity");
-                                                   startActivityForResult(intent, 1);
+                                                           Message locationMsg = MainActivity.this.myHandler
+                                                                   .obtainMessage(); // 创建消息
+                                                           locationMsg.what = 2;
+                                                           locationMsg.obj = MainActivity.this.fileList;
+                                                           MainActivity.this.myHandler.sendMessage(locationMsg);
+                                                       }
+                                                   }).start();
+//                                                   Intent intent = new Intent();
+//                                                   intent.setClass(MainActivity.this,
+//                                                           PhotoShowActivity.class);
+//                                                intent.putExtra("fileUrl",
+//                                                        fileUrl);
+//                                                   Log.e("savvy","即将跳转页面PhotoShowActivity");
+//                                                   startActivityForResult(intent, 1);
                                                }
 
 

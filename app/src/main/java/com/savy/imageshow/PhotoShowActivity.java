@@ -16,6 +16,7 @@ import android.view.ViewGroup;
 
 import com.savy.imageshow.adapter.FileListViewAdapter;
 import com.savy.imageshow.adapter.PhotoPagerAdapter;
+import com.savy.imageshow.custom.ActivityLocal;
 import com.savy.imageshow.custom.photoview.PhotoView;
 import com.savy.imageshow.model.FileInfo;
 import com.savy.imageshow.util.FileUtil;
@@ -58,8 +59,10 @@ private  String fileUrl;//共享目录地址
 
         if(intent!=null)
         {
-           this.fileUrl = intent.getStringExtra("fileUrl");
+//           this.fileUrl = intent.getStringExtra("fileUrl");
 //            this.myImageView.setImageBitmap(bitmap);
+            ActivityLocal local = new ActivityLocal(this);
+            this.allValues = (List<FileInfo>)local.get();
             Log.e("savy","新页面接收到数据："+ fileUrl);
         }
 
@@ -70,41 +73,44 @@ private  String fileUrl;//共享目录地址
         this.progressDialog.setMessage("请稍候......");
         // 设置ProgressDialog 是否可以按退回按键取消
         this.progressDialog.setCancelable(false);
-        this.progressDialog.show();
+//        this.progressDialog.show();
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                UniAddress mDomain = null;
-                try {
-                    //登录授权
-                    String myIp = share.getString(StaticProperty.IP, null);
-                    String myUsername = share.getString(StaticProperty.USERNAME, null);
-                    String myPassword = share.getString(StaticProperty.PASSWORD, null);
-                    mDomain = UniAddress.getByName(myIp);
-                    NtlmPasswordAuthentication mAuthentication = new NtlmPasswordAuthentication(myIp, myUsername, myPassword);
-                    SmbSession.logon(mDomain, mAuthentication);//访问共享服务器
-                    //登录授权结束
-                    if(PhotoShowActivity.this.fileUrl==null||"".equals(PhotoShowActivity.this.fileUrl)){
-                        PhotoShowActivity.this.fileUrl = "smb://" + myIp + "/";//文件夹根目录
-                    }
-                    Log.e("savvy","获取共享文件目录："+ PhotoShowActivity.this.fileUrl);
-//                    String rootPath = "smb://" + myIp + "/";//文件夹根目录
-                    SmbFile[] files = FileUtil.getFileList(PhotoShowActivity.this.fileUrl, mAuthentication);
-                    PhotoShowActivity.this.allValues = FileUtil.toFileList(files);
-                    Message locationMsg = PhotoShowActivity.this.myHandler
-                            .obtainMessage(); // 创建消息
-                    locationMsg.what = 1;
-                    locationMsg.obj =  PhotoShowActivity.this.allValues;
-                    PhotoShowActivity.this.myHandler.sendMessage(locationMsg);
-                } catch (UnknownHostException e) {
-                    e.printStackTrace();
-                } catch (SmbException e) {
-                    e.printStackTrace();
-                }
-                PhotoShowActivity.this.progressDialog.dismiss();
-            }
-        }).start();
+        PhotoPagerAdapter samplePagerAdapter = new PhotoPagerAdapter(this.allValues);
+        PhotoShowActivity.this.viewPager.setAdapter(samplePagerAdapter);
+
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                UniAddress mDomain = null;
+//                try {
+//                    //登录授权
+//                    String myIp = share.getString(StaticProperty.IP, null);
+//                    String myUsername = share.getString(StaticProperty.USERNAME, null);
+//                    String myPassword = share.getString(StaticProperty.PASSWORD, null);
+//                    mDomain = UniAddress.getByName(myIp);
+//                    NtlmPasswordAuthentication mAuthentication = new NtlmPasswordAuthentication(myIp, myUsername, myPassword);
+//                    SmbSession.logon(mDomain, mAuthentication);//访问共享服务器
+//                    //登录授权结束
+//                    if(PhotoShowActivity.this.fileUrl==null||"".equals(PhotoShowActivity.this.fileUrl)){
+//                        PhotoShowActivity.this.fileUrl = "smb://" + myIp + "/";//文件夹根目录
+//                    }
+//                    Log.e("savvy","获取共享文件目录："+ PhotoShowActivity.this.fileUrl);
+////                    String rootPath = "smb://" + myIp + "/";//文件夹根目录
+//                    SmbFile[] files = FileUtil.getFileList(PhotoShowActivity.this.fileUrl, mAuthentication);
+//                    PhotoShowActivity.this.allValues = FileUtil.toFileList(files);
+//                    Message locationMsg = PhotoShowActivity.this.myHandler
+//                            .obtainMessage(); // 创建消息
+//                    locationMsg.what = 1;
+//                    locationMsg.obj =  PhotoShowActivity.this.allValues;
+//                    PhotoShowActivity.this.myHandler.sendMessage(locationMsg);
+//                } catch (UnknownHostException e) {
+//                    e.printStackTrace();
+//                } catch (SmbException e) {
+//                    e.printStackTrace();
+//                }
+//                PhotoShowActivity.this.progressDialog.dismiss();
+//            }
+//        }).start();
 
 
 
