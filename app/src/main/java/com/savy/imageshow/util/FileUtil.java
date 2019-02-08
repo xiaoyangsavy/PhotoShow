@@ -63,43 +63,45 @@ public class FileUtil {
     //文件的原始接口数据转换为列表数据
     public static List<FileInfo> toFileList(SmbFile[] myFiles){
         List<FileInfo> myList = new ArrayList<FileInfo>();
-        for (SmbFile smbfile : myFiles) {//遍历文件列表内容
-            try {
-                FileInfo fileInfo = new FileInfo();
+        if(myFiles!=null&&myFiles.length>0) {//无权限时，文件列表返回为null
+            for (SmbFile smbfile : myFiles) {//遍历文件列表内容
+                try {
+                    FileInfo fileInfo = new FileInfo();
 
-                String fileUrl = smbfile.getCanonicalPath();
-                String fileName = smbfile.getName();
-                fileInfo.setFile(smbfile);
-                fileInfo.setFileUrl(fileUrl);//文件访问地址
+                    String fileUrl = smbfile.getCanonicalPath();
+                    String fileName = smbfile.getName();
+                    fileInfo.setFile(smbfile);
+                    fileInfo.setFileUrl(fileUrl);//文件访问地址
 
-                //识别文件类型
-                if(smbfile.isDirectory()){//文件类型为文件夹
+                    //识别文件类型
+                    if (smbfile.isDirectory()) {//文件类型为文件夹
 //                    Log.e("savvy","为文件夹类型");
-                    fileInfo.setName(fileName.substring(0,fileName.length()-1));//去除最后的/
-                    fileInfo.setType(FileInfo.DIRECTORY);
-                }else{//文件类型为文件
+                        fileInfo.setName(fileName.substring(0, fileName.length() - 1));//去除最后的/
+                        fileInfo.setType(FileInfo.DIRECTORY);
+                    } else {//文件类型为文件
 //                    Log.e("savvy","为文件类型");
-                    String[] fileNames =  fileName.split("\\.");
-                    if(fileNames.length>1){//文件名包含类型
-                        fileInfo.setName(fileNames[0]);
-                        String suffix =  fileNames[fileNames.length-1];
+                        String[] fileNames = fileName.split("\\.");
+                        if (fileNames.length > 1) {//文件名包含类型
+                            fileInfo.setName(fileNames[0]);
+                            String suffix = fileNames[fileNames.length - 1];
 //                        Log.e("savvy","type:"+suffix);
-                        if("jpg".equals(suffix)||"png".equals(suffix)||"webp".equals(suffix)){
-                            fileInfo.setType(FileInfo.PHOTO);
+                            if ("jpg".equals(suffix) || "png".equals(suffix) || "webp".equals(suffix)) {
+                                fileInfo.setType(FileInfo.PHOTO);
+                            }
+                        } else {//文件名不包含类型
+                            fileInfo.setName(fileName);
+                            fileInfo.setType(FileInfo.UNKNOWN);
                         }
-                    }else{//文件名不包含类型
-                        fileInfo.setName(fileName);
+                    }
+                    if (fileInfo.getType() == null || fileInfo.getType() == 0) {//都不符合，则为未知类型的文件
                         fileInfo.setType(FileInfo.UNKNOWN);
                     }
+                    myList.add(fileInfo);
+                } catch (SmbException e) {
+                    e.printStackTrace();
                 }
-                if(fileInfo.getType()==null||fileInfo.getType()==0){//都不符合，则为未知类型的文件
-                    fileInfo.setType(FileInfo.UNKNOWN);
-                }
-                myList.add(fileInfo);
-            } catch (SmbException e) {
-                e.printStackTrace();
-            }
 
+            }
         }
         return myList;
     }
@@ -110,7 +112,8 @@ public class FileUtil {
             //Decode image size
             BitmapFactory.Options o = new BitmapFactory.Options();
             o.inJustDecodeBounds = true;
-            BitmapFactory.decodeStream(new SmbFileInputStream(file),null,o);
+            SmbFileInputStream smbFileInputStream = new SmbFileInputStream(file);
+            BitmapFactory.decodeStream(smbFileInputStream,null,o);
 
             //The new size we want to scale to
             final int REQUIRED_SIZE=1000;
@@ -125,8 +128,9 @@ public class FileUtil {
             o2.inSampleSize=scale;
 
             System.gc();
-
-            return BitmapFactory.decodeStream(new SmbFileInputStream(file), null, o2);
+            Bitmap  bitmap = BitmapFactory.decodeStream(new SmbFileInputStream(file), null, o2);
+            smbFileInputStream.close();
+            return bitmap;
         } catch (Exception e) {
             e.printStackTrace();
         }

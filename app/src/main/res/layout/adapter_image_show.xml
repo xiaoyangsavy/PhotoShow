@@ -1,0 +1,25 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="#FFFFFF"
+     >
+
+    <com.savy.imageshow.custom.photoview.PhotoView
+        android:id="@+id/photo_show_imageview"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"/>
+
+
+    <Button
+        android:id="@+id/photo_delete_button"
+        android:layout_width="100dp"
+        android:layout_height="60dp"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:text="删除"
+        android:textSize="24dp"
+        android:textColor="#f6ab00"
+        android:background="#919191"
+        android:alpha="0.3"
+        />
+</RelativeLayout>

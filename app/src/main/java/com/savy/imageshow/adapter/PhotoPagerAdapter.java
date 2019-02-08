@@ -1,13 +1,19 @@
 package com.savy.imageshow.adapter;
 
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v4.view.PagerAdapter;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.Toast;
 
 import com.savy.imageshow.MainActivity;
 import com.savy.imageshow.PhotoShowActivity;
@@ -33,8 +39,11 @@ public class PhotoPagerAdapter extends PagerAdapter {
 
     @Override
     public View instantiateItem(ViewGroup container, int position) {
-        final PhotoView photoView = new PhotoView(container.getContext());
-
+       final Context context = container.getContext();
+        View convertView = LayoutInflater.from(container.getContext()).inflate(
+                R.layout.adapter_image_show, null);
+        final PhotoView photoView =  convertView.findViewById(R.id.photo_show_imageview);
+        Button deleteButton = convertView.findViewById(R.id.photo_delete_button);
         final FileInfo fileInfo = allValues.get(position);
         if(fileInfo.getType()==FileInfo.PHOTO) {
 
@@ -47,7 +56,14 @@ public class PhotoPagerAdapter extends PagerAdapter {
                             Bitmap imageBitmap = (Bitmap) msg.obj;
                             photoView.setImageBitmap(imageBitmap);
                             break;
-
+                        case 2:
+                            boolean flag = (boolean) msg.obj;
+                            if(flag){
+                                Toast.makeText(context,"删除成功！",Toast.LENGTH_SHORT).show();
+                            }else{
+                                Toast.makeText(context,"删除失败，请重试！",Toast.LENGTH_SHORT).show();
+                            }
+                            break;
                     }
                 }
             };
@@ -67,13 +83,63 @@ public class PhotoPagerAdapter extends PagerAdapter {
             }).start();
 
 
+
+            final AlertDialog.Builder alertDialog = new AlertDialog.Builder(context).setTitle("提示")//设置对话框标题
+
+                    .setMessage("是否删除此图片")//设置显示的内容
+
+                    .setPositiveButton("确定", new DialogInterface.OnClickListener() {//添加确定按钮
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {//确定按钮的响应事件
+                            Log.e("savvy","确认删除此文件！");
+
+
+                                    new Thread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            boolean flag = true;
+                                            try {
+                                                if (fileInfo.getFile().exists()&&fileInfo.getFile().isFile()&&fileInfo.getFile().canWrite()) {
+                                            fileInfo.getFile().delete();
+                                                }else{
+                                                    flag = false;
+                                                }
+                                            }catch (Exception e){
+                                                flag = false;
+                                                e.printStackTrace();
+                                            }
+                                            Message locationMsg = myHandler.obtainMessage(); // 创建消息
+                                            locationMsg.what = 2;
+                                            locationMsg.obj = flag;
+                                            myHandler.sendMessage(locationMsg);
+                                        }
+                                    }).start();
+
+
+
+                        }
+                    }).setNegativeButton("返回", new DialogInterface.OnClickListener() {//添加返回按钮
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {//响应事件
+                        }
+                    });
+
+            deleteButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    alertDialog.show();
+                }
+            });
+
         }else{
             photoView.setImageResource(R.drawable.photo_default);
         }
-            // Now just add PhotoView to ViewPager and return it
-            container.addView(photoView, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
 
-        return photoView;
+
+            // Now just add PhotoView to ViewPager and return it
+            container.addView(convertView, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+
+        return convertView;
     }
 
     @Override
