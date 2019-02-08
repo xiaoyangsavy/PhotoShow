@@ -13,6 +13,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.savy.imageshow.MainActivity;
@@ -39,12 +40,19 @@ public class PhotoPagerAdapter extends PagerAdapter {
 
     @Override
     public View instantiateItem(ViewGroup container, int position) {
+        final int filePosition = position;
        final Context context = container.getContext();
         View convertView = LayoutInflater.from(container.getContext()).inflate(
                 R.layout.adapter_image_show, null);
         final PhotoView photoView =  convertView.findViewById(R.id.photo_show_imageview);
         Button deleteButton = convertView.findViewById(R.id.photo_delete_button);
+        final TextView titleTextView = convertView.findViewById(R.id.photo_title_textview);
         final FileInfo fileInfo = allValues.get(position);
+        if(!fileInfo.isDelete()){
+        titleTextView.setText(fileInfo.getName());
+        }else {
+            titleTextView.setText(fileInfo.getName() + "\n" + "图片已删除");
+        }
         if(fileInfo.getType()==FileInfo.PHOTO) {
 
             // 将跳转之后的页面需要显示的信息传入
@@ -60,6 +68,7 @@ public class PhotoPagerAdapter extends PagerAdapter {
                             String errorInfo = (String) msg.obj;
                             if(errorInfo==null||"".equals(errorInfo)){
                                 Toast.makeText(context,"删除成功！",Toast.LENGTH_SHORT).show();
+                                titleTextView.setText(fileInfo.getName()+"\n"+"图片已删除");
                             }else{
                                 Toast.makeText(context,errorInfo,Toast.LENGTH_SHORT).show();
                             }
@@ -107,6 +116,7 @@ public class PhotoPagerAdapter extends PagerAdapter {
                                                     errorInfo = "删除失败，无操作权限！";
                                                 }else{
                                                     fileInfo.getFile().delete();
+                                                    allValues.get(filePosition).setDelete(true);
                                                 }
                                             }catch (Exception e){
                                                 errorInfo = "删除失败，错误类型为："+e.toString();

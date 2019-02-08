@@ -10,6 +10,7 @@ public class FileInfo implements Serializable {
     private Integer type;           //文件类型
     private String fileUrl;     //文件地址
     private SmbFile file;     //文件
+    private boolean isDelete = false;     //是否已删除
 
     public static int DIRECTORY = 1;//目录
     public static int PHOTO = 2;//图片
@@ -48,5 +49,13 @@ public class FileInfo implements Serializable {
 
     public void setFile(SmbFile file) {
         this.file = file;
+    }
+
+    public boolean isDelete() {
+        return isDelete;
+    }
+
+    public void setDelete(boolean delete) {
+        isDelete = delete;
     }
 }

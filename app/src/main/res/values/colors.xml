@@ -1,6 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#FF4081</color>
+    <!-- 淡粉色 -->
+    <color name="littlepink">#ffc4b0</color>
+    <!-- 字体，黄色 -->
+    <color name="golden">#f6ab00</color>
+    <!-- 字体，红色 -->
+    <color name="red">#e60027</color>
+    <!-- 字体，白色 -->
+    <color name="white">#ffffff</color>
+    <!-- 字体，灰色 -->
+    <color name="grayFont">#5c5c5c</color>
+    <!-- 时间，灰色 -->
+    <color name="grayTime">#333333</color>
+    <!-- 背景，蛋黄色 -->
+    <color name="yolk">#fffdf4</color>
+    <!-- 列表分割线，灰色 -->
+    <color name="grayHimit">#cecece</color>
+    <!-- 背景，白色 -->
+    <color name="whiteBackage">#f4f4f4</color>
+    <!-- 背景，灰色 -->
+    <color name="grayBackage">#919191</color>
+    <!-- 黑体 -->
+    <color name="black">#000</color>
+    <!-- 绿色 -->
+    <color name="green">#58bb42</color>
+    <!-- 淡绿色 -->
+    <color name="Light_green">#38bb42</color>
+
+    <!-- 线条 -->
+    <color name="gray_line">#c1c1c1</color>
 </resources>

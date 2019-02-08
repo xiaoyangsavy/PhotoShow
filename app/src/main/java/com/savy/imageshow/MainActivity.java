@@ -14,6 +14,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import com.savy.imageshow.adapter.FileListViewAdapter;
 import com.savy.imageshow.custom.ActivityLocal;
@@ -45,17 +47,19 @@ public class MainActivity extends Activity {
     private FileListViewAdapter fileListViewAdapter;
     private  String fileUrl=null;
     private List<FileInfo> fileList = new ArrayList<FileInfo>();
-
+    private  Intent intent = null;
+    private RelativeLayout activityBack=null;//导航栏
+    private TextView titleInfo=null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Intent intent=getIntent();
-        if(intent!=null)
+        this.intent=getIntent();
+        if(this.intent!=null)
         {
-            this.fileUrl=intent.getStringExtra("fileUrl");
+            this.fileUrl=this.intent.getStringExtra("fileUrl");
             Log.e("savy","新页面接收到数据："+ this.fileUrl);
         }
         // 本地缓存信息
@@ -94,6 +98,20 @@ public class MainActivity extends Activity {
         // 设置ProgressDialog 是否可以按退回按键取消
         this.progressDialog.setCancelable(false);
         this.progressDialog.show();
+
+        //设置导航栏
+        this.activityBack = (RelativeLayout) this
+                .findViewById(R.id.activityBack);
+        this.activityBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(MainActivity.this.intent!=null) {
+                    MainActivity.this.finish();
+                }
+            }
+        });
+        this.titleInfo = (TextView) this.findViewById(R.id.titleInfo);
+        this.titleInfo.setText("文件列表");
 
         new Thread(new Runnable() {
             @Override
