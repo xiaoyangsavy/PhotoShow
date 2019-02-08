@@ -57,11 +57,11 @@ public class PhotoPagerAdapter extends PagerAdapter {
                             photoView.setImageBitmap(imageBitmap);
                             break;
                         case 2:
-                            boolean flag = (boolean) msg.obj;
-                            if(flag){
+                            String errorInfo = (String) msg.obj;
+                            if(errorInfo==null||"".equals(errorInfo)){
                                 Toast.makeText(context,"删除成功！",Toast.LENGTH_SHORT).show();
                             }else{
-                                Toast.makeText(context,"删除失败，请重试！",Toast.LENGTH_SHORT).show();
+                                Toast.makeText(context,errorInfo,Toast.LENGTH_SHORT).show();
                             }
                             break;
                     }
@@ -97,20 +97,24 @@ public class PhotoPagerAdapter extends PagerAdapter {
                                     new Thread(new Runnable() {
                                         @Override
                                         public void run() {
-                                            boolean flag = true;
+                                            String errorInfo = null;
                                             try {
-                                                if (fileInfo.getFile().exists()&&fileInfo.getFile().isFile()&&fileInfo.getFile().canWrite()) {
-                                            fileInfo.getFile().delete();
+                                                if (!fileInfo.getFile().exists()){
+                                                    errorInfo = "删除失败，文件不存在！";
+                                                }else if(!fileInfo.getFile().isFile()){
+                                                    errorInfo = "删除失败，不是有效的文件！";
+                                                }else if(!fileInfo.getFile().canWrite()){
+                                                    errorInfo = "删除失败，无操作权限！";
                                                 }else{
-                                                    flag = false;
+                                                    fileInfo.getFile().delete();
                                                 }
                                             }catch (Exception e){
-                                                flag = false;
+                                                errorInfo = "删除失败，错误类型为："+e.toString();
                                                 e.printStackTrace();
                                             }
                                             Message locationMsg = myHandler.obtainMessage(); // 创建消息
                                             locationMsg.what = 2;
-                                            locationMsg.obj = flag;
+                                            locationMsg.obj = errorInfo;
                                             myHandler.sendMessage(locationMsg);
                                         }
                                     }).start();
