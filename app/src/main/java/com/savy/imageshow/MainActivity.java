@@ -26,7 +26,9 @@ import com.savy.imageshow.util.StaticProperty;
 import java.io.Serializable;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import jcifs.UniAddress;
 import jcifs.smb.NtlmPasswordAuthentication;
@@ -159,7 +161,10 @@ public class MainActivity extends Activity {
                         MainActivity.this.listView.setAdapter(fileListViewAdapter);
                         break;
                     case 2:
-                        List<FileInfo> allValues = (List<FileInfo>) msg.obj;
+                        Map<String,Object> myMap = (Map<String,Object>)msg.obj;
+//                        List<FileInfo> allValues = (List<FileInfo>) msg.obj;
+                        List<FileInfo> allValues = (List<FileInfo>)myMap.get("data");
+                        int position = (int)myMap.get("position");
                         Intent intent = new Intent();
                         intent.setClass(MainActivity.this,
                                 PhotoShowActivity.class);
@@ -167,6 +172,7 @@ public class MainActivity extends Activity {
                         al.set(allValues );
                         Bundle bundle = new Bundle();
                         bundle.putString("activitylocal",String.valueOf(al.hashCode()));
+                        bundle.putInt("position",position);
                         intent.putExtras(bundle);
 //                                                intent.putExtra("AttitudeDesign",
 //                                                        (Serializable) attitudeDesign4);
@@ -188,7 +194,7 @@ public class MainActivity extends Activity {
                                                                     long arg3) {
                                             Log.e("savvy","点击列表，即将 跳转页面："+arg2);
                                                 View view = arg1;
-                                                int positon = arg2;
+                                                final int positon = arg2;
                                                 FileInfo fileInfo = (FileInfo) arg0.getAdapter().getItem(positon);
                                                 Integer type = fileInfo.getType();
                                                 Log.e("savvy","文件类型为："+type);
@@ -209,7 +215,10 @@ public class MainActivity extends Activity {
                                                            Message locationMsg = MainActivity.this.myHandler
                                                                    .obtainMessage(); // 创建消息
                                                            locationMsg.what = 2;
-                                                           locationMsg.obj = MainActivity.this.fileList;
+                                                           Map<String,Object> myMap = new HashMap<String,Object>();
+                                                           myMap.put("data",MainActivity.this.fileList);
+                                                           myMap.put("position",positon);
+                                                           locationMsg.obj = myMap;
                                                            MainActivity.this.myHandler.sendMessage(locationMsg);
                                                        }
                                                    }).start();

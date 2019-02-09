@@ -42,6 +42,7 @@ private  String fileUrl;//共享目录地址
     private Handler myHandler;
     private ProgressDialog progressDialog;  //等待视图
     private ViewPager viewPager;
+    private int position = 0;//跳转的图片位置
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,7 +60,10 @@ private  String fileUrl;//共享目录地址
 
         if(intent!=null)
         {
-//           this.fileUrl = intent.getStringExtra("fileUrl");
+
+           Bundle myBundle = intent.getExtras();
+           this.position =  (int)myBundle.get("position");//图片位置
+           Log.e("savvy","位置："+String.valueOf(position));
 //            this.myImageView.setImageBitmap(bitmap);
             ActivityLocal local = new ActivityLocal(this);
             this.allValues = (List<FileInfo>)local.get();
@@ -76,7 +80,8 @@ private  String fileUrl;//共享目录地址
 //        this.progressDialog.show();
 
         PhotoPagerAdapter samplePagerAdapter = new PhotoPagerAdapter(this.allValues);
-        PhotoShowActivity.this.viewPager.setAdapter(samplePagerAdapter);
+        this.viewPager.setAdapter(samplePagerAdapter);
+        this.viewPager.setCurrentItem(position);//跳转到指定图片
 
 //        new Thread(new Runnable() {
 //            @Override
