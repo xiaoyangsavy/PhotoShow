@@ -13,7 +13,7 @@
             android:id="@+id/file_icon"
             android:layout_width="60dp"
             android:layout_height="60dp"
-            android:src="@drawable/photo_default" />
+            android:src="@drawable/ico_file" />
 
         <RelativeLayout
             android:layout_width="wrap_content"
@@ -30,14 +30,16 @@
                 <TextView
                     android:id="@+id/file_name"
                     android:layout_width="137dp"
-                    android:layout_height="30dp"
+                    android:layout_height="25dp"
                     android:layout_marginLeft="5dp"
+                    android:layout_marginTop="5dp"
                     android:text="未知" />
                 <TextView
                     android:id="@+id/file_detail"
                     android:layout_width="137dp"
-                    android:layout_height="30dp"
+                    android:layout_height="25dp"
                     android:layout_marginLeft="10dp"
+                    android:layout_marginBottom="5dp"
                     android:text="文件" />
             </LinearLayout>
 

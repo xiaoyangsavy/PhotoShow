@@ -59,11 +59,16 @@ public class FileListViewAdapter extends BaseAdapter {
 
         viewHolder.fileNameTextView.setText(allValues.get(position).getName());
         int fileType = allValues.get(position).getType();
-        String detailString = "文件";
+        String detailString = "";
         if(fileType==FileInfo.DIRECTORY){
             detailString = "文件夹";
+            viewHolder.fileImageView.setImageDrawable(context.getResources().getDrawable((R.drawable.ico_directory)));
+        }else if(fileType==FileInfo.PHOTO){
+            viewHolder.fileImageView.setImageDrawable(context.getResources().getDrawable((R.drawable.photo_default)));
+            detailString = "图片";
         }else{
-            detailString = "";
+            viewHolder.fileImageView.setImageDrawable(context.getResources().getDrawable((R.drawable.ico_file)));
+            detailString = "文件";
         }
         viewHolder.fileDetailTextView.setText(detailString);
 
