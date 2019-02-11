@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import com.savy.imageshow.adapter.FileListViewAdapter;
 import com.savy.imageshow.adapter.PhotoPagerAdapter;
@@ -43,6 +44,7 @@ private  String fileUrl;//共享目录地址
     private ProgressDialog progressDialog;  //等待视图
     private ViewPager viewPager;
     private int position = 0;//跳转的图片位置
+    private ImageView backImageView = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,6 +80,14 @@ private  String fileUrl;//共享目录地址
         // 设置ProgressDialog 是否可以按退回按键取消
         this.progressDialog.setCancelable(false);
 //        this.progressDialog.show();
+
+        this.backImageView = (ImageView)super.findViewById(R.id.backImageView);
+        this.backImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                PhotoShowActivity.this.finish();
+            }
+        });
 
         PhotoPagerAdapter samplePagerAdapter = new PhotoPagerAdapter(this.allValues);
         this.viewPager.setAdapter(samplePagerAdapter);

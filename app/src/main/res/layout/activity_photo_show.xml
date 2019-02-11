@@ -16,4 +16,14 @@
         android:layout_height="match_parent"
         />
 
+    <ImageView
+        android:id="@+id/backImageView"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_centerInParent="true"
+        android:clickable="true"
+        android:duplicateParentState="true"
+        android:focusable="true"
+        android:src="@drawable/back_gray" />
+
 </android.support.constraint.ConstraintLayout>

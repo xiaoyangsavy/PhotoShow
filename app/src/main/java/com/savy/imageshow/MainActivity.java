@@ -48,10 +48,12 @@ public class MainActivity extends Activity {
     private ListView listView;  //文件浏览列表
     private FileListViewAdapter fileListViewAdapter;
     private  String fileUrl=null;
+    private String fileName = null;
     private List<FileInfo> fileList = new ArrayList<FileInfo>();
     private  Intent intent = null;
     private RelativeLayout activityBack=null;//导航栏
     private TextView titleInfo=null;
+    private RelativeLayout activitySetting=null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,9 +65,10 @@ public class MainActivity extends Activity {
         {
             this.fileUrl=this.intent.getStringExtra("fileUrl");
             Log.e("savy","新页面接收到数据："+ this.fileUrl);
+            this.fileName = this.intent.getStringExtra("fileName");
         }
         // 本地缓存信息
-        share = MainActivity.this.getSharedPreferences(
+        share = this.getSharedPreferences(
                 StaticProperty.SAVE_INFO, Activity.MODE_PRIVATE);
         sedit = share.edit();
         // 保存手机信息
@@ -76,9 +79,9 @@ public class MainActivity extends Activity {
         sedit.putInt(StaticProperty.SCREEN_WIDTH, width);//手机宽度
         sedit.putInt(StaticProperty.SCREEN_HEIGHT, height);//手机高度
         //保存访问信息
-        String ip = "192.168.3.34";//pc地址
-        String username = "user";//账户密码
-        String password = "546213";
+        String ip = "192.168.3.34";//IP地址
+        String username = "user";//用户名
+        String password = "546213";//密码
         sedit.putString(StaticProperty.IP, ip);//访问地址
         sedit.putString(StaticProperty.USERNAME, username);//用户名
         sedit.putString(StaticProperty.PASSWORD, password);//密码
@@ -88,9 +91,9 @@ public class MainActivity extends Activity {
         System.setProperty("jcifs.smb.client.soTimeout", "1000000");//超时
         System.setProperty("jcifs.smb.client.responseTimeout", "30000");//超时
 
-//        this.myImageView = (ImageView) this
+//        this.myImageView = (ImageView) super
 //                .findViewById(R.id.myImageView); // 取得弹出界面中的组件
-            this.listView = (ListView) this.findViewById(R.id.list_view);
+            this.listView = (ListView) super.findViewById(R.id.list_view);
 
         this.progressDialog = new ProgressDialog(this);
         // 设置进度条风格，风格为圆形，旋转的
@@ -102,7 +105,7 @@ public class MainActivity extends Activity {
         this.progressDialog.show();
 
         //设置导航栏
-        this.activityBack = (RelativeLayout) this
+        this.activityBack = (RelativeLayout) super
                 .findViewById(R.id.activityBack);
         this.activityBack.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -112,8 +115,28 @@ public class MainActivity extends Activity {
                 }
             }
         });
-        this.titleInfo = (TextView) this.findViewById(R.id.titleInfo);
-        this.titleInfo.setText("文件列表");
+
+        this.activitySetting = (RelativeLayout) super
+                .findViewById(R.id.activitySetting);
+        this.activitySetting.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //跳转到配置页面
+                Intent intent = new Intent();
+                intent.setClass(MainActivity.this,
+                        SettingActivity.class);
+                Log.e("savvy","即将跳转页面SettingActivity");
+                startActivity(intent);
+            }
+        });
+
+        this.titleInfo = (TextView) super.findViewById(R.id.titleInfo);
+        if(fileName==null||"".equals(fileName)){
+            this.activityBack.setVisibility(View.GONE);//隐藏返回按钮
+            this.activitySetting.setVisibility(View.VISIBLE);//显示配置按钮
+            this.fileName = "文件列表";
+        }
+        this.titleInfo.setText(this.fileName);
 
         new Thread(new Runnable() {
             @Override
@@ -204,6 +227,8 @@ public class MainActivity extends Activity {
                                                            MainActivity.class);
                                                    intent.putExtra("fileUrl",
                                                            fileInfo.getFileUrl());
+                                                   intent.putExtra("fileName",
+                                                           fileInfo.getName());
                                                    Log.e("savvy","跳转页面："+fileInfo.getFileUrl());
                                                    startActivityForResult(intent, 1);
                                                }else if (type==FileInfo.PHOTO){
