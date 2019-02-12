@@ -85,9 +85,15 @@ public class FileUtil {
                             fileInfo.setName(fileNames[0]);
                             String suffix = fileNames[fileNames.length - 1];
 //                        Log.e("savvy","type:"+suffix);
-                            if ("jpg".equals(suffix) || "png".equals(suffix) || "webp".equals(suffix)) {
+                            if ("jpg".equals(suffix) || "png".equals(suffix)) {
                                 fileInfo.setType(FileInfo.PHOTO);
                             }
+//                            if ("mp3".equals(suffix)) {
+//                                fileInfo.setType(FileInfo.AUDIO);
+//                            }
+//                            if ("mp4".equals(suffix)) {
+//                                fileInfo.setType(FileInfo.VIDEO);
+//                            }
                         } else {//文件名不包含类型
                             fileInfo.setName(fileName);
                             fileInfo.setType(FileInfo.UNKNOWN);

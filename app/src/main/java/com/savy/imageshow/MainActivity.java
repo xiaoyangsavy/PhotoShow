@@ -11,11 +11,13 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.savy.imageshow.adapter.FileListViewAdapter;
 import com.savy.imageshow.custom.ActivityLocal;
@@ -54,6 +56,8 @@ public class MainActivity extends Activity {
     private RelativeLayout activityBack=null;//导航栏
     private TextView titleInfo=null;
     private RelativeLayout activitySetting=null;
+
+    private long exitTime = 0;// 返回键响应时间
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -266,7 +270,20 @@ public class MainActivity extends Activity {
     }
 
 
-
-
+    //按键时间监听
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if (exitTime == 0
+                    || (System.currentTimeMillis() - exitTime) > 2000) {
+                Toast.makeText(this, "再按一次，退出APP", Toast.LENGTH_SHORT).show();
+                exitTime = System.currentTimeMillis();
+            } else {
+                finish();
+            }
+            return true;
+        } else {// 防止菜单键不能显示
+            return false;
+        }
+    }
 
 }
