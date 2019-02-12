@@ -79,12 +79,12 @@ public class MainActivity extends Activity {
         sedit.putInt(StaticProperty.SCREEN_WIDTH, width);//手机宽度
         sedit.putInt(StaticProperty.SCREEN_HEIGHT, height);//手机高度
         //保存访问信息
-        String ip = "192.168.3.34";//IP地址
-        String username = "user";//用户名
-        String password = "546213";//密码
-        sedit.putString(StaticProperty.IP, ip);//访问地址
-        sedit.putString(StaticProperty.USERNAME, username);//用户名
-        sedit.putString(StaticProperty.PASSWORD, password);//密码
+//        String ip = "192.168.3.34";//IP地址
+//        String username = "user";//用户名
+//        String password = "546213";//密码
+//        sedit.putString(StaticProperty.IP, ip);//访问地址
+//        sedit.putString(StaticProperty.USERNAME, username);//用户名
+//        sedit.putString(StaticProperty.PASSWORD, password);//密码
         sedit.commit();
         //访问连接配置
         System.setProperty("jcifs.smb.client.dfs.disabled", "true");//默认false
@@ -125,6 +125,7 @@ public class MainActivity extends Activity {
                 Intent intent = new Intent();
                 intent.setClass(MainActivity.this,
                         SettingActivity.class);
+                intent.putExtra("fromClass","mainActivity");
                 Log.e("savvy","即将跳转页面SettingActivity");
                 startActivity(intent);
             }
@@ -144,9 +145,12 @@ public class MainActivity extends Activity {
                 UniAddress mDomain = null;
                 try {
                     //登录授权
-                    String myIp = share.getString(StaticProperty.IP, null);
-                    String myUsername = share.getString(StaticProperty.USERNAME, null);
-                    String myPassword = share.getString(StaticProperty.PASSWORD, null);
+                    String myIp = share.getString(StaticProperty.IP, "");
+                    String myUsername = share.getString(StaticProperty.USERNAME, "");
+                    String myPassword = share.getString(StaticProperty.PASSWORD, "");
+                    Log.i("savvy","ip为："+myIp);
+                    Log.i("savvy","myUsername为："+myUsername);
+                    Log.i("savvy","myPassword为："+myPassword);
                     mDomain = UniAddress.getByName(myIp);
                     NtlmPasswordAuthentication mAuthentication = new NtlmPasswordAuthentication(myIp, myUsername, myPassword);
                     SmbSession.logon(mDomain, mAuthentication);//访问共享服务器
