@@ -11,16 +11,31 @@
         android:src="@drawable/photo_default"
         />
 
+
+    <RelativeLayout
+        android:id="@+id/indexCaptionLayout"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:visibility="visible"
+        android:layout_alignParentBottom="true"
+        >
+
     <TextView
         android:id="@+id/indexCaptionTextView"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:visibility="visible"
+        android:layout_height="match_parent"
+        android:paddingTop="5dp"
         android:paddingLeft="10dp"
         android:paddingRight="10dp"
-        android:layout_alignParentBottom="true"
-        android:background="@color/grayBackage"
         android:text="标题"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/grayBackage"
+        android:alpha="0.3"
+        />
+    </RelativeLayout>
 
     <Button
         android:id="@+id/indexCommitButton"
@@ -29,10 +44,11 @@
         android:visibility="gone"
         android:layout_centerHorizontal="true"
         android:layout_alignParentBottom="true"
-        android:layout_marginBottom="5dp"
         android:background="@color/green"
         android:textColor="@color/white"
         android:text="进入"
         android:textSize="25dp"/>
+
+
 
 </RelativeLayout>

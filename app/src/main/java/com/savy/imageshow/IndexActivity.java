@@ -11,14 +11,17 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.savy.imageshow.custom.BannerIndicatorView;
 import com.savy.imageshow.util.StaticProperty;
 
 import java.util.ArrayList;
@@ -31,14 +34,14 @@ public class IndexActivity extends Activity {
     SharedPreferences share = null;
     SharedPreferences.Editor sedit = null;
 
-    private ViewPager mViewPager;
-    LinearLayout mLinearLayout;
+    private ViewPager myViewPager;
     private int[] indexImages = { R.drawable.index0,
             R.drawable.index1, R.drawable.index2, R.drawable.index3 };
     private String[] indexCaptions = {"第一步，开启windows的网络共享","第二步，设置需要共享的文件夹",
             "第三步，给共享的文件夹添加可操作的用户及其操作权限","第四步，查看电脑的ip地址，用于本APP的配置"};
     private ArrayList<View> views = new ArrayList<View>();
-    private View indexView = null;
+
+    private BannerIndicatorView bannerIndicatorView = null;//banner的指示器
 
     private Handler handler = new Handler() {
 
@@ -86,19 +89,22 @@ public class IndexActivity extends Activity {
         }
         sedit.commit();
 
+        this.bannerIndicatorView = super.findViewById(R.id.indicatorView);
+
     }
 
 
     private void initViewPager() {
-        mViewPager = (ViewPager) this.findViewById(R.id.vPager);
+        myViewPager = (ViewPager) this.findViewById(R.id.vPager);
 
-        mViewPager.setVisibility(View.VISIBLE);
+        myViewPager.setVisibility(View.VISIBLE);
         for (int i = 0; i < this.indexImages.length; i++) {
 
             LayoutInflater mLi = LayoutInflater.from(this);
-            indexView = mLi.inflate(R.layout.layout_index, null);
+            View indexView = mLi.inflate(R.layout.layout_index, null);
             ImageView indexImageView = indexView.findViewById(R.id.indexImageview);
             indexImageView.setImageDrawable(ContextCompat.getDrawable(getApplicationContext(),this.indexImages[i]));
+            RelativeLayout indexCaptionLayout =  indexView.findViewById(R.id.indexCaptionLayout);
             TextView indexCaptionTextView = indexView.findViewById(R.id.indexCaptionTextView);
             indexCaptionTextView.setText(this.indexCaptions[i]);
             Button indexCommitButton = indexView.findViewById(R.id.indexCommitButton);
@@ -113,30 +119,30 @@ public class IndexActivity extends Activity {
             });
              if (i == this.indexImages.length - 1) {
 //                 indexImageView.setOnClickListener(new OnViewPagerClickImpl());
-                 indexCaptionTextView.setVisibility(View.GONE);
+                 indexCaptionLayout.setVisibility(View.GONE);
                  indexCommitButton.setVisibility(View.VISIBLE);
              }
 
-
-
             views.add(indexView);
         }
-        mViewPager.setAdapter(new MyPagerAdapter());
+        myViewPager.setAdapter(new MyPagerAdapter());
+        myViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int i, float v, int i1) {
+            }
+            @Override
+            public void onPageSelected(int i) {//当前显示的滚动页面
+                Log.i("savvy","position:"+i);
+                IndexActivity.this.bannerIndicatorView.setCurrentPosition(i);
+            }
+            @Override
+            public void onPageScrollStateChanged(int i) {
+            }
+        });
 
     }
 
-//    class OnViewPagerClickImpl implements View.OnClickListener {
-//
-//        @Override
-//        public void onClick(View v) {
-//            Intent intent = new Intent();
-//            intent.setClass(IndexActivity.this, SettingActivity.class);
-//            startActivity(intent);
-//            finish();
-//        }
-//
-//    }
-
+    //滚动页面适配器
     class MyPagerAdapter extends PagerAdapter {
 
         @Override
@@ -159,6 +165,7 @@ public class IndexActivity extends Activity {
         @Override
         public Object instantiateItem(ViewGroup container, final int position) {
             container.addView(views.get(position));
+
             return views.get(position);
         }
 
