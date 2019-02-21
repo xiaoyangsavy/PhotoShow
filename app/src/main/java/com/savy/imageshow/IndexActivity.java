@@ -77,7 +77,7 @@ public class IndexActivity extends Activity {
 
 // 验证是否为第一次登录
         boolean flag = share.getBoolean(StaticProperty.IS_FIRST_LOGIN, true);
-        flag = true;    //测试代码，每次都进入引导页
+//        flag = true;    //测试代码，每次都进入引导页
         if (flag) {
             sedit = share.edit();
             sedit.putBoolean(StaticProperty.IS_FIRST_LOGIN, false);
